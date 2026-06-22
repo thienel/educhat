@@ -10,11 +10,10 @@ import SubjectsPage from '@/features/subjects/SubjectsPage'
 import SubjectDocumentsPage from '@/features/subjects/SubjectDocumentsPage'
 import SubjectChatPage from '@/features/subjects/SubjectChatPage'
 import SubjectMembersPage from '@/features/subjects/SubjectMembersPage'
+import SubjectStudentsPage from '@/features/subjects/SubjectStudentsPage'
 import SubjectFlashcardsPage from '@/features/flashcards/SubjectFlashcardsPage'
 import FlashcardStudyPage from '@/features/flashcards/FlashcardStudyPage'
 import SubjectExamsPage from '@/features/exams/SubjectExamsPage'
-import ClassesPage from '@/features/classes/ClassesPage'
-import StudentsPage from '@/features/classes/StudentsPage'
 import ExamDetailPage from '@/features/exams/ExamDetailPage'
 import TakeExamPage from '@/features/exams/TakeExamPage'
 import ExamResultPage from '@/features/exams/ExamResultPage'
@@ -71,8 +70,7 @@ export default function AppRoutes() {
         <Route path="/subjects/:id/chat" element={<SubjectChatPage />} />
         <Route path="/subjects/:id/chat/:chatId" element={<SubjectChatPage />} />
         <Route path="/subjects/:id/members" element={<SubjectMembersPage />} />
-        <Route path="/subjects/:id/classes" element={<ClassesPage />} />
-        <Route path="/subjects/:id/students" element={<StudentsPage />} />
+        <Route path="/subjects/:id/students" element={<SubjectStudentsPage />} />
         <Route path="/subjects/:id/flashcards" element={<SubjectFlashcardsPage />} />
         <Route path="/subjects/:id/flashcards/:setId" element={<FlashcardStudyPage />} />
         <Route path="/subjects/:id/exams" element={<SubjectExamsPage />} />
