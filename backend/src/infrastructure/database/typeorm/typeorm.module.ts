@@ -29,6 +29,7 @@ import { AiUsageLogTypeOrmRepository } from './repositories/ai-usage-log.typeorm
 import { FlashcardTypeOrmRepository } from './repositories/flashcard.typeorm-repository';
 import { ExamTypeOrmRepository } from './repositories/exam.typeorm-repository';
 import { BookmarkOrmEntity } from './orm-entities/bookmark.orm-entity';
+import { SubjectEnrollmentOrmEntity } from './orm-entities/subject-enrollment.orm-entity';
 import { BookmarkTypeOrmRepository } from './repositories/bookmark.typeorm-repository';
 import { DatabaseSeederService } from './seeds/seed.service';
 import { TOKENS } from '../../../shared/constants/tokens';
@@ -51,6 +52,7 @@ const ormEntities = [
   QuestionOrmEntity,
   ExamAttemptOrmEntity,
   BookmarkOrmEntity,
+  SubjectEnrollmentOrmEntity,
 ];
 
 @Module({
