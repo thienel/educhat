@@ -20,7 +20,6 @@ export class FlashcardTypeOrmRepository implements IFlashcardRepository {
     const s = new FlashcardSet();
     s.id = orm.id;
     s.subjectId = orm.subjectId;
-    s.classId = orm.classId;
     s.title = orm.title;
     s.description = orm.description ?? undefined;
     s.isPublic = orm.isPublic;
@@ -44,7 +43,6 @@ export class FlashcardTypeOrmRepository implements IFlashcardRepository {
   async createSet(data: Partial<FlashcardSet>): Promise<FlashcardSet> {
     const orm = this.setRepo.create({
       subjectId: data.subjectId,
-      classId: data.classId,
       title: data.title,
       description: data.description ?? null,
       isPublic: data.isPublic ?? true,
@@ -62,14 +60,6 @@ export class FlashcardTypeOrmRepository implements IFlashcardRepository {
   async findSetsBySubjectId(subjectId: string): Promise<FlashcardSet[]> {
     const orms = await this.setRepo.find({
       where: { subjectId },
-      order: { createdAt: 'DESC' },
-    });
-    return orms.map((o) => this.toSetEntity(o));
-  }
-
-  async findSetsByClassId(classId: string): Promise<FlashcardSet[]> {
-    const orms = await this.setRepo.find({
-      where: { classId },
       order: { createdAt: 'DESC' },
     });
     return orms.map((o) => this.toSetEntity(o));

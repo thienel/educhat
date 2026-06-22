@@ -21,7 +21,6 @@ export class ChatTypeOrmRepository implements IChatRepository {
     chat.id = orm.id;
     chat.userId = orm.userId;
     chat.subjectId = orm.subjectId;
-    chat.classId = orm.classId;
     chat.title = orm.title;
     chat.createdAt = orm.createdAt;
     chat.updatedAt = orm.updatedAt;
@@ -58,7 +57,6 @@ export class ChatTypeOrmRepository implements IChatRepository {
     const orm = this.chatRepo.create({
       userId: data.userId,
       subjectId: data.subjectId,
-      classId: data.classId,
       title: data.title ?? 'New conversation',
     });
     const saved = await this.chatRepo.save(orm);

@@ -20,9 +20,6 @@ export class ExamOrmEntity {
   @Column({ name: 'subject_id' })
   subjectId: string;
 
-  @Column({ name: 'class_id', type: 'uuid', nullable: true })
-  classId: string;
-
   @Column({ length: 500 })
   title: string;
 
