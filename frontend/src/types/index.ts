@@ -15,42 +15,18 @@ export interface Subject {
   description?: string;
   status: 'active' | 'inactive';
   createdAt: string;
-  lecturers?: { id: string; fullName: string; email: string }[];
+  lecturer?: { id: string; fullName: string; email: string };
   isEnrolled?: boolean;
 }
 
-export interface SubjectLecturer {
-  id: string;
-  fullName: string;
-}
-
-export interface Class {
-  id: string;
-  subjectId: string;
-  lecturerId: string;
-  name: string;
-  lecturer?: { id: string; fullName: string };
-  studentCount?: number;
-  createdAt: string;
-}
-
-export interface ClassStudent {
+export interface SubjectStudent {
   id: string;
   fullName: string;
   email: string;
   enrolledAt: string;
 }
 
-export interface ClassStudentStat {
-  id: string;
-  fullName: string;
-  email: string;
-  examAttempts: number;
-  avgScore: number | null;
-  lastActiveAt: string | null;
-}
-
-export interface ClassStats {
+export interface SubjectStats {
   overview: {
     studentCount: number;
     documentCount: number;
@@ -60,7 +36,14 @@ export interface ClassStats {
     totalAttempts: number;
     avgScore: number | null;
   };
-  students: ClassStudentStat[];
+  students: {
+    id: string;
+    fullName: string;
+    email: string;
+    examAttempts: number;
+    avgScore: number | null;
+    lastActiveAt: string | null;
+  }[];
 }
 
 export interface Document {
