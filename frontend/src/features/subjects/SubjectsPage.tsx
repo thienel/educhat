@@ -6,9 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { useSubjects } from './queries'
-import { useUnenroll } from '@/features/classes/queries'
-import { EnrollDialog } from '@/features/classes/EnrollDialog'
+import { useSubjects, useEnrollSubject, useUnenrollSubject } from './queries'
 import { usePermission } from '@/store/useAuthStore'
 import { cn } from '@/lib/utils'
 
@@ -91,9 +89,9 @@ export default function SubjectsPage() {
                 <p className="text-xs text-zinc-500 line-clamp-2 mb-3">{subject.description}</p>
               )}
 
-              {subject.lecturers && subject.lecturers.length > 0 && (
+              {subject.lecturer && (
                 <p className="text-xs text-zinc-600 mb-3 truncate">
-                  {subject.lecturers.map(l => l.fullName).join(', ')}
+                  {subject.lecturer.fullName}
                 </p>
               )}
 
@@ -111,32 +109,30 @@ export default function SubjectsPage() {
 }
 
 function EnrollButton({ subjectId, isEnrolled }: { subjectId: string; isEnrolled: boolean }) {
-  const [open, setOpen] = useState(false)
-  const unenroll = useUnenroll(subjectId)
+  const enroll = useEnrollSubject()
+  const unenroll = useUnenrollSubject()
 
   if (isEnrolled) {
     return (
       <Button
         size="sm"
         disabled={unenroll.isPending}
-        onClick={() => unenroll.mutate()}
+        onClick={() => unenroll.mutate(subjectId)}
         className="h-7 px-3 text-xs rounded-md w-full bg-transparent border border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
       >
-        {unenroll.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Leave class'}
+        {unenroll.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Leave'}
       </Button>
     )
   }
 
   return (
-    <>
-      <Button
-        size="sm"
-        onClick={() => setOpen(true)}
-        className="h-7 px-3 text-xs rounded-md w-full bg-zinc-50 text-zinc-950 hover:bg-zinc-200"
-      >
-        Enroll
-      </Button>
-      <EnrollDialog subjectId={subjectId} open={open} onOpenChange={setOpen} />
-    </>
+    <Button
+      size="sm"
+      disabled={enroll.isPending}
+      onClick={() => enroll.mutate(subjectId)}
+      className="h-7 px-3 text-xs rounded-md w-full bg-zinc-50 text-zinc-950 hover:bg-zinc-200"
+    >
+      {enroll.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Enroll'}
+    </Button>
   )
 }

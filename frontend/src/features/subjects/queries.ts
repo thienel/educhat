@@ -14,6 +14,8 @@ export const subjectKeys = {
   list: (filters: ListFilter) => [...subjectKeys.all(), 'list', filters] as const,
   detail: (id: string) => [...subjectKeys.all(), id] as const,
   documents: (id: string) => [...subjectKeys.all(), id, 'documents'] as const,
+  students: (id: string) => [...subjectKeys.all(), id, 'students'] as const,
+  stats: (id: string) => [...subjectKeys.all(), id, 'stats'] as const,
 }
 
 export function useSubjects(filters: ListFilter = {}) {
@@ -31,13 +33,29 @@ export function useSubject(id: string) {
   })
 }
 
-export function useSubjectDocuments(subjectId: string, classId?: string) {
+export function useSubjectDocuments(subjectId: string) {
   return useQuery({
-    queryKey: [...subjectKeys.documents(subjectId), classId ?? null],
-    queryFn: () => subjectsApi.getDocuments(subjectId, classId),
-    enabled: !!subjectId && !!classId,
+    queryKey: subjectKeys.documents(subjectId),
+    queryFn: () => subjectsApi.getDocuments(subjectId),
+    enabled: !!subjectId,
     refetchInterval: (query) =>
       query.state.data?.some(d => d.status === 'processing') ? 3000 : false,
+  })
+}
+
+export function useSubjectStudents(subjectId: string) {
+  return useQuery({
+    queryKey: subjectKeys.students(subjectId),
+    queryFn: () => subjectsApi.getStudents(subjectId),
+    enabled: !!subjectId,
+  })
+}
+
+export function useSubjectStats(subjectId: string) {
+  return useQuery({
+    queryKey: subjectKeys.stats(subjectId),
+    queryFn: () => subjectsApi.getStats(subjectId),
+    enabled: !!subjectId,
   })
 }
 
@@ -77,10 +95,10 @@ export function useDeleteSubject() {
   })
 }
 
-export function useUploadDocument(subjectId: string, classId?: string) {
+export function useUploadDocument(subjectId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (file: File) => subjectsApi.uploadDocument(subjectId, file, classId),
+    mutationFn: (file: File) => subjectsApi.uploadDocument(subjectId, file),
     onSuccess: () => qc.invalidateQueries({ queryKey: subjectKeys.documents(subjectId) }),
   })
 }
@@ -105,8 +123,23 @@ export function useAssignLecturer() {
 export function useRemoveLecturer() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ subjectId, lecturerId }: { subjectId: string; lecturerId: string }) =>
-      subjectsApi.removeLecturer(subjectId, lecturerId),
-    onSuccess: (_, { subjectId }) => qc.invalidateQueries({ queryKey: subjectKeys.detail(subjectId) }),
+    mutationFn: (subjectId: string) => subjectsApi.removeLecturer(subjectId),
+    onSuccess: (_, subjectId) => qc.invalidateQueries({ queryKey: subjectKeys.detail(subjectId) }),
+  })
+}
+
+export function useEnrollSubject() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (subjectId: string) => subjectsApi.enroll(subjectId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: subjectKeys.all() }),
+  })
+}
+
+export function useUnenrollSubject() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (subjectId: string) => subjectsApi.unenroll(subjectId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: subjectKeys.all() }),
   })
 }

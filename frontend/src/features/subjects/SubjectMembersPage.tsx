@@ -26,18 +26,18 @@ export default function SubjectMembersPage() {
 
   const [assignOpen, setAssignOpen] = useState(false)
 
-  const lecturers = subject?.lecturers ?? []
-  const assignedIds = new Set(lecturers.map(l => l.id))
-  const available = (allLecturers?.items ?? []).filter(l => !assignedIds.has(l.id))
+  const lecturer = subject?.lecturer
+  const assignedId = lecturer?.id
+  const available = (allLecturers?.items ?? []).filter(l => l.id !== assignedId)
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-base font-medium text-zinc-50">Members</h2>
-          <p className="text-xs text-zinc-500 mt-0.5">Lecturers assigned to this subject</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Lecturer assigned to this subject</p>
         </div>
-        {isAdmin && (
+        {isAdmin && !lecturer && (
           <Button
             onClick={() => setAssignOpen(true)}
             className="bg-zinc-50 text-zinc-950 hover:bg-zinc-200 h-8 px-3 text-sm font-medium rounded-md"
@@ -49,16 +49,12 @@ export default function SubjectMembersPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 rounded-lg bg-zinc-900" />
-          ))}
-        </div>
-      ) : lecturers.length === 0 ? (
+        <Skeleton className="h-14 rounded-lg bg-zinc-900" />
+      ) : !lecturer ? (
         <EmptyState
           icon={Users}
-          title="No lecturers assigned"
-          description={isAdmin ? 'Use the button above to assign a lecturer.' : 'Contact an admin to assign lecturers to this subject.'}
+          title="No lecturer assigned"
+          description={isAdmin ? 'Use the button above to assign a lecturer.' : 'Contact an admin to assign a lecturer to this subject.'}
           action={isAdmin ? (
             <Button
               onClick={() => setAssignOpen(true)}
@@ -81,36 +77,46 @@ export default function SubjectMembersPage() {
               </tr>
             </thead>
             <tbody>
-              {lecturers.map(lecturer => (
-                <tr key={lecturer.id} className="border-b border-zinc-800/50 hover:bg-zinc-900/50 transition-colors duration-150">
-                  <td className="py-3 px-4 text-zinc-300">{lecturer.fullName}</td>
-                  <td className="py-3 px-4 text-zinc-500 text-xs">{lecturer.email}</td>
+              <tr className="border-b border-zinc-800/50 hover:bg-zinc-900/50 transition-colors duration-150">
+                <td className="py-3 px-4 text-zinc-300">{lecturer.fullName}</td>
+                <td className="py-3 px-4 text-zinc-500 text-xs">{lecturer.email}</td>
+                <td className="py-3 px-4">
+                  <Badge className="text-[10px] rounded bg-zinc-800 text-zinc-400 border-zinc-700">
+                    Lecturer
+                  </Badge>
+                </td>
+                {isAdmin && (
                   <td className="py-3 px-4">
-                    <Badge className="text-[10px] rounded bg-zinc-800 text-zinc-400 border-zinc-700">
-                      Lecturer
-                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={removeLecturer.isPending}
+                      onClick={() => removeLecturer.mutate(id)}
+                      className="h-7 w-7 rounded-md text-zinc-600 hover:text-red-400 hover:bg-zinc-800"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
                   </td>
-                  {isAdmin && (
-                    <td className="py-3 px-4">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={removeLecturer.isPending}
-                        onClick={() => removeLecturer.mutate({ subjectId: id, lecturerId: lecturer.id })}
-                        className="h-7 w-7 rounded-md text-zinc-600 hover:text-red-400 hover:bg-zinc-800"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </td>
-                  )}
-                </tr>
-              ))}
+                )}
+              </tr>
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Assign lecturer dialog */}
+      {isAdmin && lecturer && (
+        <div className="mt-4">
+          <Button
+            variant="outline"
+            onClick={() => setAssignOpen(true)}
+            className="h-8 px-3 text-sm rounded-md border-zinc-700 bg-transparent text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50"
+          >
+            <UserPlus className="h-4 w-4 mr-1.5" />
+            Replace lecturer
+          </Button>
+        </div>
+      )}
+
       <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
         <DialogContent className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-none p-0 max-w-md">
           <DialogHeader className="px-5 py-4 border-b border-zinc-800">
@@ -121,7 +127,7 @@ export default function SubjectMembersPage() {
           </DialogHeader>
           <div className="p-3 max-h-80 overflow-y-auto">
             {available.length === 0 ? (
-              <p className="text-sm text-zinc-500 text-center py-6">All lecturers are already assigned.</p>
+              <p className="text-sm text-zinc-500 text-center py-6">No lecturers available.</p>
             ) : (
               available.map(l => (
                 <button
