@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { FileText, MessageSquare, Users, Layers, ClipboardList, GraduationCap } from 'lucide-react'
+import { FileText, MessageSquare, Users, Layers, ClipboardList } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePermission } from '@/store/useAuthStore'
 
@@ -10,14 +10,13 @@ interface SubjectTabsProps {
 export function SubjectTabs({ subjectId }: SubjectTabsProps) {
   const { pathname } = useLocation()
 
-  // Each tab is shown only if the user holds the permission that backs it.
   const perms = {
     documents: usePermission('document:read'),
     chat: usePermission('chat:create'),
     flashcards: usePermission('flashcard:read'),
     exams: usePermission('exam:read'),
-    classes: usePermission('class:manage'),
-    members: usePermission('subject:assign-lecturer'),
+    students: usePermission('document:upload'),  // lecturer sees Students tab
+    members: usePermission('subject:assign-lecturer'),  // admin sees Members tab
   }
 
   const tabs = [
@@ -25,9 +24,7 @@ export function SubjectTabs({ subjectId }: SubjectTabsProps) {
     perms.chat && { label: 'Chat', href: `/subjects/${subjectId}/chat`, icon: MessageSquare },
     perms.flashcards && { label: 'Flashcards', href: `/subjects/${subjectId}/flashcards`, icon: Layers },
     perms.exams && { label: 'Exams', href: `/subjects/${subjectId}/exams`, icon: ClipboardList },
-    // Lecturers manage their class roster; admins manage subject lecturers.
-    perms.classes && { label: 'Students', href: `/subjects/${subjectId}/students`, icon: Users },
-    perms.classes && { label: 'Classes', href: `/subjects/${subjectId}/classes`, icon: GraduationCap },
+    perms.students && { label: 'Students', href: `/subjects/${subjectId}/students`, icon: Users },
     perms.members && { label: 'Members', href: `/subjects/${subjectId}/members`, icon: Users },
   ].filter(Boolean) as { label: string; href: string; icon: typeof FileText }[]
 
