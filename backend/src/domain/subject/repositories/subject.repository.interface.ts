@@ -9,6 +9,26 @@ export interface ListSubjectsFilter {
   search?: string;
 }
 
+export interface SubjectStats {
+  overview: {
+    studentCount: number;
+    documentCount: number;
+    documentsReady: number;
+    examCount: number;
+    flashcardSetCount: number;
+    totalAttempts: number;
+    avgScore: number | null;
+  };
+  students: {
+    id: string;
+    fullName: string;
+    email: string;
+    examAttempts: number;
+    avgScore: number | null;
+    lastActiveAt: string | null;
+  }[];
+}
+
 export interface ISubjectRepository {
   findById(id: string): Promise<Subject | null>;
   findByCode(code: string): Promise<Subject | null>;
@@ -17,9 +37,11 @@ export interface ISubjectRepository {
   update(id: string, data: Partial<Subject>): Promise<Subject>;
   delete(id: string): Promise<void>;
   assignLecturer(subjectId: string, lecturerId: string, assignedBy: string): Promise<void>;
-  removeLecturer(subjectId: string, lecturerId: string): Promise<void>;
+  removeLecturer(subjectId: string): Promise<void>;
   isLecturerAssigned(subjectId: string, lecturerId: string): Promise<boolean>;
   enrollStudent(subjectId: string, studentId: string): Promise<void>;
   unenrollStudent(subjectId: string, studentId: string): Promise<void>;
   isStudentEnrolled(subjectId: string, studentId: string): Promise<boolean>;
+  listStudents(subjectId: string): Promise<{ id: string; fullName: string; email: string; enrolledAt: Date }[]>;
+  getSubjectStats(subjectId: string): Promise<SubjectStats>;
 }

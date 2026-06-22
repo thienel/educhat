@@ -10,7 +10,7 @@ export class Subject {
   description?: string;
   status: SubjectStatus;
   createdBy?: string;
-  lecturers?: { id: string; fullName: string; email: string }[];
+  lecturer?: { id: string; fullName: string; email: string };
   isEnrolled?: boolean;
   createdAt: Date;
   updatedAt: Date;
