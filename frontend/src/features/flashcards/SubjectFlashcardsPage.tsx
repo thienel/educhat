@@ -10,9 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useToast } from '@/hooks/use-toast'
 import { useAuthStore } from '@/store/useAuthStore'
-import { useSubjectClass } from '@/features/classes/ClassContext'
 import { DocumentPicker } from '@/components/shared/DocumentPicker'
-import { NeedClassNotice } from '@/features/classes/NeedClassNotice'
 import { getErrorMessage } from '@/lib/errors'
 import { useFlashcardSets, useGenerateFlashcards, useDeleteFlashcardSet } from './queries'
 
@@ -28,9 +26,8 @@ export default function SubjectFlashcardsPage() {
   const [cardCount, setCardCount] = useState('10')
   const [documentIds, setDocumentIds] = useState<string[]>([])
 
-  const { classId, isLecturer, needsClass } = useSubjectClass()
-  const { data: sets = [], isLoading } = useFlashcardSets(subjectId, classId)
-  const generate = useGenerateFlashcards(subjectId, classId)
+  const { data: sets = [], isLoading } = useFlashcardSets(subjectId)
+  const generate = useGenerateFlashcards(subjectId)
   const remove = useDeleteFlashcardSet(subjectId)
 
   const handleGenerate = async () => {
@@ -68,9 +65,7 @@ export default function SubjectFlashcardsPage() {
         )}
       </div>
 
-      {isLecturer && needsClass ? (
-        <NeedClassNotice noun="Flashcard sets" />
-      ) : isLoading ? (
+      {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-16 rounded-lg bg-zinc-900" />
@@ -178,7 +173,6 @@ export default function SubjectFlashcardsPage() {
             </div>
             <DocumentPicker
               subjectId={subjectId}
-              classId={classId}
               value={documentIds}
               onChange={setDocumentIds}
             />

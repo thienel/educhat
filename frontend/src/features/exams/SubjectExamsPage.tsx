@@ -10,9 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useToast } from '@/hooks/use-toast'
 import { useAuthStore } from '@/store/useAuthStore'
-import { useSubjectClass } from '@/features/classes/ClassContext'
 import { DocumentPicker } from '@/components/shared/DocumentPicker'
-import { NeedClassNotice } from '@/features/classes/NeedClassNotice'
 import { getErrorMessage } from '@/lib/errors'
 import { useExams, useGenerateExam, useMyAttempts } from './queries'
 import type { ExamDifficulty } from '@/types'
@@ -35,9 +33,8 @@ export default function SubjectExamsPage() {
   const [difficulty, setDifficulty] = useState<ExamDifficulty>('medium')
   const [documentIds, setDocumentIds] = useState<string[]>([])
 
-  const { classId, isLecturer, needsClass } = useSubjectClass()
-  const { data: exams = [], isLoading } = useExams(subjectId, classId)
-  const generate = useGenerateExam(subjectId, classId)
+  const { data: exams = [], isLoading } = useExams(subjectId)
+  const generate = useGenerateExam(subjectId)
   const { data: attempts = [] } = useMyAttempts()
 
   const examIds = new Set(exams.map(e => e.id))
@@ -83,9 +80,7 @@ export default function SubjectExamsPage() {
         )}
       </div>
 
-      {isLecturer && needsClass ? (
-        <NeedClassNotice noun="Exams" />
-      ) : isLoading ? (
+      {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-16 rounded-lg bg-zinc-900" />
@@ -213,7 +208,6 @@ export default function SubjectExamsPage() {
             </div>
             <DocumentPicker
               subjectId={subjectId}
-              classId={classId}
               value={documentIds}
               onChange={setDocumentIds}
             />

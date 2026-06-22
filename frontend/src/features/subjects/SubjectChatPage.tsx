@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useChats, useChat, useCreateChat, useDeleteChat, chatKeys } from '@/features/chat/queries'
-import { useSubjectClass } from '@/features/classes/ClassContext'
 import { useChatStream } from '@/hooks/useChatStream'
 import type { Message, MessageSource } from '@/types'
 import { cn } from '@/lib/utils'
@@ -38,8 +37,6 @@ export default function SubjectChatPage() {
   const createChat = useCreateChat()
   const deleteChat = useDeleteChat()
   const { sendMessage, isStreaming } = useChatStream()
-  const { classId } = useSubjectClass()
-
   const autoResize = (el: HTMLTextAreaElement) => {
     el.style.height = 'auto'
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`
@@ -62,9 +59,9 @@ export default function SubjectChatPage() {
   }, [messages])
 
   const handleNewChat = useCallback(async () => {
-    const chat = await createChat.mutateAsync({ subjectId, classId, title: 'New conversation' })
+    const chat = await createChat.mutateAsync({ subjectId, title: 'New conversation' })
     navigate(`/subjects/${subjectId}/chat/${chat.id}`)
-  }, [createChat, navigate, subjectId, classId])
+  }, [createChat, navigate, subjectId])
 
   const handleSend = useCallback(async () => {
     const content = input.trim()

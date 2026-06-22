@@ -6,11 +6,11 @@ export const flashcardKeys = {
   detail: (subjectId: string, setId: string) => ['flashcards', subjectId, setId] as const,
 }
 
-export function useFlashcardSets(subjectId: string, classId?: string) {
+export function useFlashcardSets(subjectId: string) {
   return useQuery({
-    queryKey: [...flashcardKeys.list(subjectId), classId ?? null],
-    queryFn: () => flashcardsApi.list(subjectId, classId),
-    enabled: !!subjectId && !!classId,
+    queryKey: flashcardKeys.list(subjectId),
+    queryFn: () => flashcardsApi.list(subjectId),
+    enabled: !!subjectId,
   })
 }
 
@@ -22,11 +22,11 @@ export function useFlashcardSet(subjectId: string, setId: string) {
   })
 }
 
-export function useGenerateFlashcards(subjectId: string, classId?: string) {
+export function useGenerateFlashcards(subjectId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: { topic?: string; cardCount?: number; documentIds?: string[] }) =>
-      flashcardsApi.generate(subjectId, { ...data, classId }),
+      flashcardsApi.generate(subjectId, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: flashcardKeys.list(subjectId) }),
   })
 }
