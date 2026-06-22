@@ -8,9 +8,9 @@ export class RemoveLecturerUseCase {
     @Inject(TOKENS.SUBJECT_REPO) private readonly subjectRepo: ISubjectRepository,
   ) {}
 
-  async execute(subjectId: string, lecturerId: string): Promise<void> {
+  async execute(subjectId: string): Promise<void> {
     const subject = await this.subjectRepo.findById(subjectId);
     if (!subject) throw new NotFoundException('Subject not found');
-    await this.subjectRepo.removeLecturer(subjectId, lecturerId);
+    await this.subjectRepo.removeLecturer(subjectId);
   }
 }

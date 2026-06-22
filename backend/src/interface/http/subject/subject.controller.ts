@@ -26,6 +26,10 @@ import { UpdateSubjectUseCase } from '../../../application/subject/use-cases/upd
 import { DeleteSubjectUseCase } from '../../../application/subject/use-cases/delete-subject.use-case';
 import { AssignLecturerUseCase } from '../../../application/subject/use-cases/assign-lecturer.use-case';
 import { RemoveLecturerUseCase } from '../../../application/subject/use-cases/remove-lecturer.use-case';
+import { EnrollStudentUseCase } from '../../../application/subject/use-cases/enroll-student.use-case';
+import { UnenrollStudentUseCase } from '../../../application/subject/use-cases/unenroll-student.use-case';
+import { ListSubjectStudentsUseCase } from '../../../application/subject/use-cases/list-subject-students.use-case';
+import { GetSubjectStatsUseCase } from '../../../application/subject/use-cases/get-subject-stats.use-case';
 import {
   CreateSubjectDto,
   UpdateSubjectDto,
@@ -47,6 +51,10 @@ export class SubjectController {
     private readonly deleteSubjectUseCase: DeleteSubjectUseCase,
     private readonly assignLecturerUseCase: AssignLecturerUseCase,
     private readonly removeLecturerUseCase: RemoveLecturerUseCase,
+    private readonly enrollStudentUseCase: EnrollStudentUseCase,
+    private readonly unenrollStudentUseCase: UnenrollStudentUseCase,
+    private readonly listSubjectStudentsUseCase: ListSubjectStudentsUseCase,
+    private readonly getSubjectStatsUseCase: GetSubjectStatsUseCase,
     private readonly auditLogService: AuditLogService,
   ) {}
 
@@ -101,13 +109,37 @@ export class SubjectController {
     return { message: 'Lecturer assigned successfully' };
   }
 
-  @Delete(':id/lecturers/:lecturerId')
+  @Delete(':id/lecturers')
   @RequirePermission('subject:assign-lecturer')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async removeLecturer(
-    @Param('id') subjectId: string,
-    @Param('lecturerId') lecturerId: string,
-  ) {
-    await this.removeLecturerUseCase.execute(subjectId, lecturerId);
+  async removeLecturer(@Param('id') subjectId: string) {
+    await this.removeLecturerUseCase.execute(subjectId);
+  }
+
+  @Post(':id/enroll')
+  @RequirePermission('subject:enroll')
+  @HttpCode(HttpStatus.OK)
+  async enroll(@Param('id') subjectId: string, @CurrentUser() user: User) {
+    await this.enrollStudentUseCase.execute(subjectId, user.id);
+    return { message: 'Enrolled successfully' };
+  }
+
+  @Delete(':id/enroll')
+  @RequirePermission('subject:enroll')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async unenroll(@Param('id') subjectId: string, @CurrentUser() user: User) {
+    await this.unenrollStudentUseCase.execute(subjectId, user.id);
+  }
+
+  @Get(':id/students')
+  @RequirePermission('subject:read')
+  async listStudents(@Param('id') subjectId: string, @CurrentUser() user: User) {
+    return this.listSubjectStudentsUseCase.execute(subjectId, user);
+  }
+
+  @Get(':id/stats')
+  @RequirePermission('subject:assign-lecturer')
+  async subjectStats(@Param('id') subjectId: string) {
+    return this.getSubjectStatsUseCase.execute(subjectId);
   }
 }
