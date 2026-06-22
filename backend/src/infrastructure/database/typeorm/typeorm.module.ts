@@ -30,9 +30,6 @@ import { FlashcardTypeOrmRepository } from './repositories/flashcard.typeorm-rep
 import { ExamTypeOrmRepository } from './repositories/exam.typeorm-repository';
 import { BookmarkOrmEntity } from './orm-entities/bookmark.orm-entity';
 import { BookmarkTypeOrmRepository } from './repositories/bookmark.typeorm-repository';
-import { ClassOrmEntity } from './orm-entities/class.orm-entity';
-import { ClassEnrollmentOrmEntity } from './orm-entities/class-enrollment.orm-entity';
-import { ClassTypeOrmRepository } from './repositories/class.typeorm-repository';
 import { DatabaseSeederService } from './seeds/seed.service';
 import { TOKENS } from '../../../shared/constants/tokens';
 
@@ -54,8 +51,6 @@ const ormEntities = [
   QuestionOrmEntity,
   ExamAttemptOrmEntity,
   BookmarkOrmEntity,
-  ClassOrmEntity,
-  ClassEnrollmentOrmEntity,
 ];
 
 @Module({
@@ -86,7 +81,6 @@ const ormEntities = [
     FlashcardTypeOrmRepository,
     ExamTypeOrmRepository,
     BookmarkTypeOrmRepository,
-    ClassTypeOrmRepository,
     DatabaseSeederService,
     { provide: TOKENS.USER_REPO, useClass: UserTypeOrmRepository },
     { provide: TOKENS.ROLE_REPO, useClass: RoleTypeOrmRepository },
@@ -100,7 +94,6 @@ const ormEntities = [
     { provide: TOKENS.FLASHCARD_REPO, useClass: FlashcardTypeOrmRepository },
     { provide: TOKENS.EXAM_REPO, useClass: ExamTypeOrmRepository },
     { provide: TOKENS.BOOKMARK_REPO, useClass: BookmarkTypeOrmRepository },
-    { provide: TOKENS.CLASS_REPO, useClass: ClassTypeOrmRepository },
   ],
   exports: [
     TypeOrmModule,
@@ -116,7 +109,6 @@ const ormEntities = [
     { provide: TOKENS.FLASHCARD_REPO, useClass: FlashcardTypeOrmRepository },
     { provide: TOKENS.EXAM_REPO, useClass: ExamTypeOrmRepository },
     { provide: TOKENS.BOOKMARK_REPO, useClass: BookmarkTypeOrmRepository },
-    { provide: TOKENS.CLASS_REPO, useClass: ClassTypeOrmRepository },
     UserTypeOrmRepository,
     RoleTypeOrmRepository,
     RefreshTokenTypeOrmRepository,
@@ -129,7 +121,6 @@ const ormEntities = [
     FlashcardTypeOrmRepository,
     ExamTypeOrmRepository,
     BookmarkTypeOrmRepository,
-    ClassTypeOrmRepository,
   ],
 })
 export class TypeOrmDatabaseModule {}

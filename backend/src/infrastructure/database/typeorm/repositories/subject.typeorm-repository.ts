@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { ISubjectRepository, ListSubjectsFilter } from '../../../../domain/subject/repositories/subject.repository.interface';
+import { ISubjectRepository, ListSubjectsFilter, SubjectStats } from '../../../../domain/subject/repositories/subject.repository.interface';
 import { Subject, SubjectStatus } from '../../../../domain/subject/entities/subject.entity';
 import { SubjectOrmEntity } from '../orm-entities/subject.orm-entity';
 
@@ -23,12 +23,12 @@ export class SubjectTypeOrmRepository implements ISubjectRepository {
     subject.createdBy = orm.createdBy;
     subject.createdAt = orm.createdAt;
     subject.updatedAt = orm.updatedAt;
-    if (orm.lecturers) {
-      subject.lecturers = orm.lecturers.map((l) => ({
-        id: l.id,
-        fullName: l.fullName,
-        email: l.email,
-      }));
+    if (orm.lecturer) {
+      subject.lecturer = {
+        id: orm.lecturer.id,
+        fullName: orm.lecturer.fullName,
+        email: orm.lecturer.email,
+      };
     }
     return subject;
   }
@@ -36,7 +36,7 @@ export class SubjectTypeOrmRepository implements ISubjectRepository {
   async findById(id: string): Promise<Subject | null> {
     const orm = await this.repo.findOne({
       where: { id },
-      relations: ['lecturers'],
+      relations: ['lecturer'],
     });
     return orm ? this.toEntity(orm) : null;
   }
@@ -48,7 +48,7 @@ export class SubjectTypeOrmRepository implements ISubjectRepository {
 
   async findAll(filter: ListSubjectsFilter): Promise<{ items: Subject[]; total: number }> {
     const qb = this.repo.createQueryBuilder('s')
-      .leftJoinAndSelect('s.lecturers', 'lecturer');
+      .leftJoinAndSelect('s.lecturer', 'lecturer');
 
     if (filter.status) {
       qb.andWhere('s.status = :status', { status: filter.status });
@@ -59,10 +59,8 @@ export class SubjectTypeOrmRepository implements ISubjectRepository {
       });
     }
     if (filter.lecturerId) {
-      qb.andWhere('lecturer.id = :lecturerId', { lecturerId: filter.lecturerId });
+      qb.andWhere('s.lecturerId = :lecturerId', { lecturerId: filter.lecturerId });
     }
-    // Students browse all (active) subjects to discover and enroll; the
-    // enrollment state is surfaced per-subject via isEnrolled below.
 
     const total = await qb.getCount();
     const items = await qb
@@ -73,9 +71,8 @@ export class SubjectTypeOrmRepository implements ISubjectRepository {
     let enrolledIds = new Set<string>();
     if (filter.studentId && items.length > 0) {
       const rows = await this.dataSource.query(
-        `SELECT DISTINCT c.subject_id FROM class_enrollments ce
-         JOIN classes c ON c.id = ce.class_id
-         WHERE ce.student_id = $1 AND c.subject_id = ANY($2)`,
+        `SELECT subject_id FROM subject_enrollments
+         WHERE student_id = $1 AND subject_id = ANY($2)`,
         [filter.studentId, items.map((i) => i.id)],
       );
       enrolledIds = new Set(rows.map((r: { subject_id: string }) => r.subject_id));
@@ -118,21 +115,21 @@ export class SubjectTypeOrmRepository implements ISubjectRepository {
 
   async assignLecturer(subjectId: string, lecturerId: string, _assignedBy: string): Promise<void> {
     await this.dataSource.query(
-      `INSERT INTO subject_lecturers (subject_id, lecturer_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      `UPDATE subjects SET lecturer_id = $2 WHERE id = $1`,
       [subjectId, lecturerId],
     );
   }
 
-  async removeLecturer(subjectId: string, lecturerId: string): Promise<void> {
+  async removeLecturer(subjectId: string): Promise<void> {
     await this.dataSource.query(
-      `DELETE FROM subject_lecturers WHERE subject_id = $1 AND lecturer_id = $2`,
-      [subjectId, lecturerId],
+      `UPDATE subjects SET lecturer_id = NULL WHERE id = $1`,
+      [subjectId],
     );
   }
 
   async isLecturerAssigned(subjectId: string, lecturerId: string): Promise<boolean> {
     const result = await this.dataSource.query(
-      `SELECT 1 FROM subject_lecturers WHERE subject_id = $1 AND lecturer_id = $2`,
+      `SELECT 1 FROM subjects WHERE id = $1 AND lecturer_id = $2`,
       [subjectId, lecturerId],
     );
     return result.length > 0;
@@ -158,5 +155,61 @@ export class SubjectTypeOrmRepository implements ISubjectRepository {
       [subjectId, studentId],
     );
     return result.length > 0;
+  }
+
+  async listStudents(subjectId: string): Promise<{ id: string; fullName: string; email: string; enrolledAt: Date }[]> {
+    return this.dataSource.query(
+      `SELECT u.id, u.full_name AS "fullName", u.email, se.enrolled_at AS "enrolledAt"
+       FROM subject_enrollments se JOIN users u ON u.id = se.student_id
+       WHERE se.subject_id = $1 ORDER BY u.full_name ASC`,
+      [subjectId],
+    );
+  }
+
+  async getSubjectStats(subjectId: string): Promise<SubjectStats> {
+    const [overviewRow] = await this.dataSource.query(
+      `SELECT
+         (SELECT COUNT(*) FROM subject_enrollments WHERE subject_id = $1)::int AS "studentCount",
+         (SELECT COUNT(*) FROM documents WHERE subject_id = $1)::int AS "documentCount",
+         (SELECT COUNT(*) FROM documents WHERE subject_id = $1 AND status = 'ready')::int AS "documentsReady",
+         (SELECT COUNT(*) FROM exams WHERE subject_id = $1)::int AS "examCount",
+         (SELECT COUNT(*) FROM flashcard_sets WHERE subject_id = $1)::int AS "flashcardSetCount",
+         (SELECT COUNT(*) FROM exam_attempts ea JOIN exams e ON e.id = ea.exam_id
+            WHERE e.subject_id = $1 AND ea.status = 'completed')::int AS "totalAttempts",
+         (SELECT AVG(ea.score) FROM exam_attempts ea JOIN exams e ON e.id = ea.exam_id
+            WHERE e.subject_id = $1 AND ea.status = 'completed') AS "avgScore"`,
+      [subjectId],
+    );
+
+    const students = await this.dataSource.query(
+      `SELECT u.id, u.full_name AS "fullName", u.email,
+         COUNT(ea.id) FILTER (WHERE ea.status = 'completed')::int AS "examAttempts",
+         AVG(ea.score) FILTER (WHERE ea.status = 'completed') AS "avgScore",
+         MAX(COALESCE(ea.completed_at, ea.started_at)) AS "lastActiveAt"
+       FROM subject_enrollments se
+       JOIN users u ON u.id = se.student_id
+       LEFT JOIN exams e ON e.subject_id = se.subject_id AND e.created_by = u.id
+       LEFT JOIN exam_attempts ea ON ea.exam_id = e.id AND ea.user_id = u.id
+       WHERE se.subject_id = $1
+       GROUP BY u.id, u.full_name, u.email
+       ORDER BY u.full_name ASC`,
+      [subjectId],
+    );
+
+    return {
+      overview: {
+        studentCount: overviewRow.studentCount,
+        documentCount: overviewRow.documentCount,
+        documentsReady: overviewRow.documentsReady,
+        examCount: overviewRow.examCount,
+        flashcardSetCount: overviewRow.flashcardSetCount,
+        totalAttempts: overviewRow.totalAttempts,
+        avgScore: overviewRow.avgScore === null ? null : Number(overviewRow.avgScore),
+      },
+      students: students.map((s: SubjectStats['students'][number]) => ({
+        ...s,
+        avgScore: s.avgScore === null ? null : Number(s.avgScore),
+      })),
+    };
   }
 }

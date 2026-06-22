@@ -3,8 +3,6 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -31,25 +29,16 @@ export class SubjectOrmEntity {
   @Column({ name: 'created_by', nullable: true, type: 'uuid' })
   createdBy: string;
 
+  @Column({ name: 'lecturer_id', nullable: true, type: 'uuid' })
+  lecturerId: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToMany(() => UserOrmEntity, { eager: false })
-  @JoinTable({
-    name: 'subject_lecturers',
-    joinColumn: { name: 'subject_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'lecturer_id', referencedColumnName: 'id' },
-  })
-  lecturers: UserOrmEntity[];
-
-  @ManyToMany(() => UserOrmEntity, { eager: false })
-  @JoinTable({
-    name: 'subject_enrollments',
-    joinColumn: { name: 'subject_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'student_id', referencedColumnName: 'id' },
-  })
-  students: UserOrmEntity[];
+  @ManyToOne(() => UserOrmEntity, { nullable: true, eager: false })
+  @JoinColumn({ name: 'lecturer_id' })
+  lecturer: UserOrmEntity;
 }
