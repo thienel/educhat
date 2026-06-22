@@ -1,5 +1,5 @@
 import {
-  Controller, Post, Get, Body, Param, Query,
+  Controller, Post, Get, Body, Param,
   UseGuards, UsePipes, ValidationPipe,
   HttpCode, HttpStatus,
 } from '@nestjs/common';
@@ -17,7 +17,6 @@ import { SubmitAttemptUseCase } from '../../../application/exam/use-cases/submit
 import { GetAttemptResultUseCase } from '../../../application/exam/use-cases/get-attempt-result.use-case';
 import { ListMyAttemptsUseCase } from '../../../application/exam/use-cases/list-my-attempts.use-case';
 import { GenerateExamDto, SubmitAttemptDto } from '../../../application/exam/dtos/exam.dto';
-import { ClassContextService } from '../../../application/class/services/class-context.service';
 import { User } from '../../../domain/user/entities/user.entity';
 
 @Controller('subjects/:subjectId/exams')
@@ -30,18 +29,15 @@ export class SubjectExamController {
     private readonly getExamUseCase: GetExamUseCase,
     private readonly startAttemptUseCase: StartAttemptUseCase,
     private readonly submitAttemptUseCase: SubmitAttemptUseCase,
-    private readonly classContext: ClassContextService,
   ) {}
 
   @Get()
   @RequirePermission('exam:read')
   async list(
     @Param('subjectId') subjectId: string,
-    @Query('classId') classId: string,
     @CurrentUser() user: User,
   ) {
-    const resolvedClassId = await this.classContext.resolveClassId(subjectId, user, classId);
-    return this.listExamsUseCase.execute(resolvedClassId, user);
+    return this.listExamsUseCase.execute(subjectId, user);
   }
 
   @Post('generate')
@@ -54,8 +50,7 @@ export class SubjectExamController {
     @Body() dto: GenerateExamDto,
     @CurrentUser() user: User,
   ) {
-    const resolvedClassId = await this.classContext.resolveClassId(subjectId, user, dto.classId);
-    return this.generateExamUseCase.execute(subjectId, resolvedClassId, dto, user);
+    return this.generateExamUseCase.execute(subjectId, dto, user);
   }
 
   @Get(':examId')

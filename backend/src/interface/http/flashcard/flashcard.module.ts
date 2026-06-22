@@ -6,10 +6,9 @@ import { GetFlashcardSetUseCase } from '../../../application/flashcard/use-cases
 import { DeleteFlashcardSetUseCase } from '../../../application/flashcard/use-cases/delete-flashcard-set.use-case';
 import { TypeOrmDatabaseModule } from '../../../infrastructure/database/typeorm/typeorm.module';
 import { AiModule } from '../../../infrastructure/ai/ai.module';
-import { ClassModule } from '../class/class.module';
 
 @Module({
-  imports: [TypeOrmDatabaseModule, AiModule, ClassModule],
+  imports: [TypeOrmDatabaseModule, AiModule],
   controllers: [FlashcardController],
   providers: [
     GenerateFlashcardsUseCase,
