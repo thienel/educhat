@@ -2,11 +2,9 @@ import axiosInstance from '@/api/axiosInstance'
 import type { ApiResponse, Exam, ExamDifficulty, ExamAttempt, Question } from '@/types'
 
 export const examsApi = {
-  list: (subjectId: string, classId?: string) =>
+  list: (subjectId: string) =>
     axiosInstance
-      .get<ApiResponse<Exam[]>>(`/subjects/${subjectId}/exams`, {
-        params: classId ? { classId } : undefined,
-      })
+      .get<ApiResponse<Exam[]>>(`/subjects/${subjectId}/exams`)
       .then(r => r.data.data),
 
   get: (subjectId: string, examId: string) =>
@@ -20,7 +18,6 @@ export const examsApi = {
       questionCount?: number
       difficulty?: ExamDifficulty
       topic?: string
-      classId?: string
       documentIds?: string[]
     },
   ) =>

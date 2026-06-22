@@ -1,5 +1,5 @@
 import axiosInstance from '@/api/axiosInstance'
-import type { ApiResponse, PaginatedResponse, Subject, Document } from '@/types'
+import type { ApiResponse, PaginatedResponse, Subject, Document, SubjectStudent, SubjectStats } from '@/types'
 
 export const subjectsApi = {
   list: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
@@ -20,20 +20,30 @@ export const subjectsApi = {
   assignLecturer: (subjectId: string, lecturerId: string) =>
     axiosInstance.post(`/subjects/${subjectId}/lecturers`, { lecturerId }),
 
-  removeLecturer: (subjectId: string, lecturerId: string) =>
-    axiosInstance.delete(`/subjects/${subjectId}/lecturers/${lecturerId}`),
+  removeLecturer: (subjectId: string) =>
+    axiosInstance.delete(`/subjects/${subjectId}/lecturers`),
 
-  getDocuments: (subjectId: string, classId?: string) =>
-    axiosInstance.get<ApiResponse<{ items: Document[]; total: number }>>(`/subjects/${subjectId}/documents`, {
-      params: classId ? { classId } : undefined,
-    }).then(r => r.data.data.items),
+  enroll: (subjectId: string) =>
+    axiosInstance.post(`/subjects/${subjectId}/enroll`),
 
-  uploadDocument: (subjectId: string, file: File, classId?: string) => {
+  unenroll: (subjectId: string) =>
+    axiosInstance.delete(`/subjects/${subjectId}/enroll`),
+
+  getStudents: (subjectId: string) =>
+    axiosInstance.get<ApiResponse<SubjectStudent[]>>(`/subjects/${subjectId}/students`).then(r => r.data.data),
+
+  getStats: (subjectId: string) =>
+    axiosInstance.get<ApiResponse<SubjectStats>>(`/subjects/${subjectId}/stats`).then(r => r.data.data),
+
+  getDocuments: (subjectId: string) =>
+    axiosInstance.get<ApiResponse<{ items: Document[]; total: number }>>(`/subjects/${subjectId}/documents`)
+      .then(r => r.data.data.items),
+
+  uploadDocument: (subjectId: string, file: File) => {
     const form = new FormData()
     form.append('file', file)
     return axiosInstance.post<ApiResponse<Document>>(`/subjects/${subjectId}/documents`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      params: classId ? { classId } : undefined,
     }).then(r => r.data.data)
   },
 

@@ -2,11 +2,9 @@ import axiosInstance from '@/api/axiosInstance'
 import type { ApiResponse, FlashcardSet, FlashcardSetWithCards } from '@/types'
 
 export const flashcardsApi = {
-  list: (subjectId: string, classId?: string) =>
+  list: (subjectId: string) =>
     axiosInstance
-      .get<ApiResponse<FlashcardSet[]>>(`/subjects/${subjectId}/flashcard-sets`, {
-        params: classId ? { classId } : undefined,
-      })
+      .get<ApiResponse<FlashcardSet[]>>(`/subjects/${subjectId}/flashcard-sets`)
       .then(r => r.data.data),
 
   get: (subjectId: string, setId: string) =>
@@ -18,7 +16,7 @@ export const flashcardsApi = {
 
   generate: (
     subjectId: string,
-    data: { topic?: string; cardCount?: number; classId?: string; documentIds?: string[] },
+    data: { topic?: string; cardCount?: number; documentIds?: string[] },
   ) =>
     axiosInstance
       // AI generation runs an LLM call — override the short global timeout.
