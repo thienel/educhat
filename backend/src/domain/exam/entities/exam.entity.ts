@@ -1,7 +1,6 @@
 export class Exam {
   id: string;
   subjectId: string;
-  classId?: string;
   title: string;
   description?: string;
   type: 'official' | 'ai_generated';

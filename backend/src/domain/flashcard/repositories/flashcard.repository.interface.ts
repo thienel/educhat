@@ -5,7 +5,6 @@ export interface IFlashcardRepository {
   createSet(data: Partial<FlashcardSet>): Promise<FlashcardSet>;
   findSetById(id: string): Promise<FlashcardSet | null>;
   findSetsBySubjectId(subjectId: string): Promise<FlashcardSet[]>;
-  findSetsByClassId(classId: string): Promise<FlashcardSet[]>;
   deleteSet(id: string): Promise<void>;
 
   createCards(cards: Array<{ setId: string; front: string; back: string; position: number }>): Promise<Flashcard[]>;
