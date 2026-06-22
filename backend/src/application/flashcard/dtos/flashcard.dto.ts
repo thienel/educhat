@@ -11,12 +11,6 @@ export class GenerateFlashcardsDto {
   @Max(50)
   cardCount?: number;
 
-  /** Lecturer/admin: the class the set belongs to (students derive it from enrollment). */
-  @IsOptional()
-  @IsUUID()
-  classId?: string;
-
-  /** Restrict generation to these documents; empty = whole class. */
   @IsOptional()
   @IsArray()
   @IsUUID('all', { each: true })

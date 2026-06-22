@@ -9,9 +9,8 @@ export class ListFlashcardSetsUseCase {
     @Inject(TOKENS.FLASHCARD_REPO) private readonly flashcardRepo: IFlashcardRepository,
   ) {}
 
-  async execute(classId: string, user: User) {
-    // Flashcard sets are private to the student who generated them.
-    const sets = await this.flashcardRepo.findSetsByClassId(classId);
+  async execute(subjectId: string, user: User) {
+    const sets = await this.flashcardRepo.findSetsBySubjectId(subjectId);
     return sets.filter((s) => s.createdBy === user.id);
   }
 }

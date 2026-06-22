@@ -15,12 +15,6 @@ export class GenerateExamDto {
   @IsString()
   topic?: string;
 
-  /** Lecturer/admin: the class the exam belongs to (students derive it from enrollment). */
-  @IsOptional()
-  @IsUUID()
-  classId?: string;
-
-  /** Restrict generation to these documents; empty = whole class. */
   @IsOptional()
   @IsArray()
   @IsUUID('all', { each: true })

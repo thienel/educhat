@@ -43,7 +43,6 @@ export class PrepareRagStreamUseCase {
     const streamToken = this.aiServiceClient.issueStreamToken({
       chatId,
       subjectId: chat.subjectId,
-      classId: chat.classId ?? '',
       content: dto.content,
       chatHistory,
       topK,
@@ -59,7 +58,6 @@ export class PrepareRagStreamUseCase {
       streamPayload: {
         content: dto.content,
         subjectId: chat.subjectId,
-        classId: chat.classId ?? '',
         chatHistory,
         topK,
         minScore,

@@ -16,14 +16,13 @@ export class GenerateFlashcardsUseCase {
     private readonly aiServiceClient: AiServiceClient,
   ) {}
 
-  async execute(subjectId: string, classId: string, dto: GenerateFlashcardsDto, user: User) {
+  async execute(subjectId: string, dto: GenerateFlashcardsDto, user: User) {
     const subject = await this.subjectRepo.findById(subjectId);
     if (!subject) throw new NotFoundException('Subject not found');
 
     const cardCount = dto.cardCount ?? 10;
     const generatedCards = await this.aiServiceClient.generateFlashcards(
       subjectId,
-      classId,
       cardCount,
       dto.topic,
       dto.documentIds,
@@ -35,7 +34,6 @@ export class GenerateFlashcardsUseCase {
 
     const set = await this.flashcardRepo.createSet({
       subjectId,
-      classId,
       title,
       isPublic: true,
       createdBy: user.id,

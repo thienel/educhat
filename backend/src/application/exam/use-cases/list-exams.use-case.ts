@@ -9,9 +9,8 @@ export class ListExamsUseCase {
     @Inject(TOKENS.EXAM_REPO) private readonly examRepo: IExamRepository,
   ) {}
 
-  async execute(classId: string, user: User) {
-    // Exams are private to the student who generated them.
-    const exams = await this.examRepo.findExamsByClassId(classId);
+  async execute(subjectId: string, user: User) {
+    const exams = await this.examRepo.findExamsBySubjectId(subjectId);
     return exams.filter((e) => e.createdBy === user.id);
   }
 }
