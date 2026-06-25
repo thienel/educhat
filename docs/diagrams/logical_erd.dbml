@@ -1,0 +1,257 @@
+// =====================================================================
+//  EduChat - Logical ERD (DBML)
+//  Paste the whole file into https://dbdiagram.io to render the diagram.
+//  Notes:
+//   - All foreign keys below are enforced by real DB constraints
+//     (every FK column has a declared TypeORM relation).
+//   - resource_id in bookmarks / audit_logs is a polymorphic reference
+//     (points to different tables depending on resource_type) -> NOT a FK.
+// =====================================================================
+
+Table users {
+  id            uuid         [pk]
+  email         varchar(255) [not null, unique]
+  password_hash varchar(255) [not null]
+  full_name     varchar(255) [not null]
+  role_id       uuid         [not null]
+  status        varchar(20)  [not null, default: 'active']
+  created_by    uuid         [null]   // FK -> users.id (self, who created this user)
+  created_at    timestamptz  [not null, default: `now()`]
+  updated_at    timestamptz  [not null, default: `now()`]
+}
+
+Table roles {
+  id          uuid        [pk]
+  name        varchar(50) [not null, unique]
+  description text        [null]
+  is_system   boolean     [not null, default: false]
+  created_at  timestamptz [not null, default: `now()`]
+}
+
+Table permissions {
+  id          uuid         [pk]
+  name        varchar(100) [not null, unique]
+  description text         [null]
+  created_at  timestamptz  [not null, default: `now()`]
+}
+
+Table role_permissions {
+  role_id       uuid [not null]
+  permission_id uuid [not null]
+
+  indexes {
+    (role_id, permission_id) [pk]
+  }
+}
+
+Table refresh_tokens {
+  id         uuid         [pk]
+  user_id    uuid         [not null]
+  token_hash varchar(255) [not null, unique]
+  expires_at timestamptz  [not null]
+  revoked_at timestamptz  [null]
+  created_at timestamptz  [not null, default: `now()`]
+}
+
+Table subjects {
+  id          uuid        [pk]
+  code        varchar(20) [not null, unique]
+  name        varchar(255)[not null]
+  description text        [null]
+  status      varchar(20) [not null, default: 'active']
+  created_by  uuid        [null]  // FK -> users.id (creator)
+  lecturer_id uuid        [null]  // FK -> users.id (assigned lecturer)
+  created_at  timestamptz [not null, default: `now()`]
+  updated_at  timestamptz [not null, default: `now()`]
+}
+
+Table subject_enrollments {
+  id          uuid        [pk]
+  subject_id  uuid        [not null]
+  student_id  uuid        [not null]
+  enrolled_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (subject_id, student_id) [unique]
+  }
+}
+
+Table chats {
+  id         uuid         [pk]
+  user_id    uuid         [not null]
+  subject_id uuid         [not null]
+  title      varchar(500) [not null, default: 'Cuộc trò chuyện mới']
+  created_at timestamptz  [not null, default: `now()`]
+  updated_at timestamptz  [not null, default: `now()`]
+}
+
+Table messages {
+  id         uuid        [pk]
+  chat_id    uuid        [not null]
+  role       varchar(20) [not null]   // 'user' | 'assistant'
+  content    text        [not null]
+  sources    jsonb       [null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table documents {
+  id              uuid          [pk]
+  subject_id      uuid          [not null]
+  original_name   varchar(500)  [not null]
+  stored_path     varchar(1000) [not null]
+  mime_type       varchar(100)  [not null]
+  file_size_bytes integer       [null]
+  status          varchar(20)   [not null, default: 'processing']
+  chunk_count     integer       [not null, default: 0]
+  error_message   text          [null]
+  uploaded_by     uuid          [not null]
+  created_at      timestamptz   [not null, default: `now()`]
+  updated_at      timestamptz   [not null, default: `now()`]
+}
+
+Table exams {
+  id               uuid         [pk]
+  subject_id       uuid         [not null]
+  title            varchar(500) [not null]
+  description      text         [null]
+  type             varchar(30)  [not null]
+  difficulty       varchar(10)  [null]
+  duration_minutes integer      [not null, default: 0]
+  question_count   integer      [not null, default: 10]
+  is_public        boolean      [not null, default: false]
+  created_by       uuid         [not null]
+  created_at       timestamptz  [not null, default: `now()`]
+  updated_at       timestamptz  [not null, default: `now()`]
+}
+
+Table questions {
+  id             uuid       [pk]
+  exam_id        uuid       [not null]
+  content        text       [not null]
+  options        jsonb      [not null]
+  correct_answer varchar(5) [not null]
+  explanation    text       [null]
+  position       integer    [not null, default: 0]
+}
+
+Table exam_attempts {
+  id              uuid          [pk]
+  exam_id         uuid          [not null]
+  user_id         uuid          [not null]
+  answers         jsonb         [null]
+  score           decimal(5,2)  [null]
+  total_questions integer       [null]
+  correct_count   integer       [null]
+  status          varchar(20)   [not null, default: 'in_progress']
+  started_at      timestamptz   [not null, default: `now()`]
+  completed_at    timestamptz   [null]
+  time_spent_secs integer       [null]
+}
+
+Table flashcard_sets {
+  id          uuid         [pk]
+  subject_id  uuid         [not null]
+  title       varchar(255) [not null]
+  description text         [null]
+  is_public   boolean      [not null, default: true]
+  created_by  uuid         [not null]
+  created_at  timestamptz  [not null, default: `now()`]
+  updated_at  timestamptz  [not null, default: `now()`]
+}
+
+Table flashcards {
+  id         uuid        [pk]
+  set_id     uuid        [not null]
+  front      text        [not null]
+  back       text        [not null]
+  position   integer     [not null, default: 0]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table bookmarks {
+  id            uuid         [pk]
+  user_id       uuid         [not null]
+  resource_type varchar(30)  [not null]   // 'exam' | 'flashcard_set' | 'document' ...
+  resource_id   varchar(255) [not null]   // polymorphic - NOT a FK
+  note          text         [null]
+  created_at    timestamptz  [not null, default: `now()`]
+
+  indexes {
+    (user_id, resource_type, resource_id) [unique]
+  }
+}
+
+Table ai_usage_logs {
+  id        uuid        [pk]
+  user_id   uuid        [not null]
+  feature   varchar(30) [not null]
+  used_date date        [not null]
+  count     integer     [not null, default: 1]
+
+  indexes {
+    (user_id, feature, used_date) [unique]
+  }
+}
+
+Table audit_logs {
+  id            uuid        [pk]
+  user_id       uuid        [null]
+  action        varchar(100)[not null]
+  resource_type varchar(50) [null]
+  resource_id   uuid        [null]   // polymorphic - NOT a FK
+  details       jsonb       [null]
+  ip_address    inet        [null]
+  created_at    timestamptz [not null, default: `now()`]
+}
+
+Table system_settings {
+  key         varchar(100) [pk]
+  value       jsonb        [not null]
+  description text         [null]
+  updated_by  uuid         [null]   // FK -> users.id (last editor)
+  updated_at  timestamptz  [not null, default: `now()`]
+}
+
+// =====================================================================
+//  Relationships (Foreign Keys)
+// =====================================================================
+
+// --- Access control ---
+Ref: users.role_id                     > roles.id
+Ref: users.created_by                  > users.id            // self-reference
+Ref: role_permissions.role_id          > roles.id
+Ref: role_permissions.permission_id    > permissions.id
+Ref: refresh_tokens.user_id            > users.id
+
+// --- Subjects & enrollment ---
+Ref: subjects.lecturer_id              > users.id
+Ref: subjects.created_by               > users.id
+Ref: subject_enrollments.subject_id    > subjects.id
+Ref: subject_enrollments.student_id    > users.id
+
+// --- Chat ---
+Ref: chats.user_id                     > users.id
+Ref: chats.subject_id                  > subjects.id
+Ref: messages.chat_id                  > chats.id
+
+// --- Documents ---
+Ref: documents.subject_id              > subjects.id
+Ref: documents.uploaded_by             > users.id
+
+// --- Exams ---
+Ref: exams.subject_id                  > subjects.id
+Ref: exams.created_by                  > users.id
+Ref: questions.exam_id                 > exams.id
+Ref: exam_attempts.exam_id             > exams.id
+Ref: exam_attempts.user_id             > users.id
+
+// --- Flashcards ---
+Ref: flashcard_sets.subject_id         > subjects.id
+Ref: flashcard_sets.created_by         > users.id
+Ref: flashcards.set_id                 > flashcard_sets.id
+
+// --- Misc ---
+Ref: bookmarks.user_id                 > users.id
+Ref: ai_usage_logs.user_id             > users.id
+Ref: audit_logs.user_id                > users.id
+Ref: system_settings.updated_by        > users.id

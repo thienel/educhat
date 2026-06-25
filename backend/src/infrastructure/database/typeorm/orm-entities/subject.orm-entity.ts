@@ -41,4 +41,8 @@ export class SubjectOrmEntity {
   @ManyToOne(() => UserOrmEntity, { nullable: true, eager: false })
   @JoinColumn({ name: 'lecturer_id' })
   lecturer: UserOrmEntity;
+
+  @ManyToOne(() => UserOrmEntity, { nullable: true, eager: false })
+  @JoinColumn({ name: 'created_by' })
+  creator: UserOrmEntity;
 }

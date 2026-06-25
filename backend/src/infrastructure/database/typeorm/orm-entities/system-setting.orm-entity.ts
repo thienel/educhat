@@ -1,4 +1,12 @@
-import { Column, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { UserOrmEntity } from './user.orm-entity';
 
 @Entity('system_settings')
 export class SystemSettingOrmEntity {
@@ -16,4 +24,8 @@ export class SystemSettingOrmEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @ManyToOne(() => UserOrmEntity, { nullable: true, eager: false })
+  @JoinColumn({ name: 'updated_by' })
+  updater: UserOrmEntity;
 }

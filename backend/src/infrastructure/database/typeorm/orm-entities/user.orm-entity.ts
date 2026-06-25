@@ -41,4 +41,8 @@ export class UserOrmEntity {
   @ManyToOne(() => RoleOrmEntity, { eager: false })
   @JoinColumn({ name: 'role_id' })
   role: RoleOrmEntity;
+
+  @ManyToOne(() => UserOrmEntity, { nullable: true, eager: false })
+  @JoinColumn({ name: 'created_by' })
+  creator: UserOrmEntity;
 }

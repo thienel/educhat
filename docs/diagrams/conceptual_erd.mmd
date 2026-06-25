@@ -1,0 +1,31 @@
+%% EduChat - Conceptual ERD
+%% Conceptual level: entities and relationships only (no attributes, no data types).
+%% View online: https://mermaid.live
+erDiagram
+    ROLE          ||--o{ USER          : "is assigned to"
+    ROLE          }o--o{ PERMISSION    : "grants"
+
+    USER          ||--o{ SUBJECT       : "teaches (lecturer)"
+    USER          }o--o{ SUBJECT       : "enrolls in (student)"
+
+    USER          ||--o{ CHAT          : "starts"
+    SUBJECT       ||--o{ CHAT          : "scopes"
+    CHAT          ||--o{ MESSAGE       : "contains"
+
+    SUBJECT       ||--o{ DOCUMENT      : "owns"
+    USER          ||--o{ DOCUMENT      : "uploads"
+
+    SUBJECT       ||--o{ EXAM          : "offers"
+    USER          ||--o{ EXAM          : "authors"
+    EXAM          ||--o{ QUESTION      : "consists of"
+    EXAM          ||--o{ EXAM_ATTEMPT  : "is attempted in"
+    USER          ||--o{ EXAM_ATTEMPT  : "performs"
+
+    SUBJECT       ||--o{ FLASHCARD_SET : "owns"
+    USER          ||--o{ FLASHCARD_SET : "creates"
+    FLASHCARD_SET ||--o{ FLASHCARD     : "consists of"
+
+    USER          ||--o{ BOOKMARK      : "saves"
+    USER          ||--o{ REFRESH_TOKEN : "holds session"
+    USER          ||--o{ AI_USAGE_LOG  : "accrues AI quota"
+    USER          ||--o{ AUDIT_LOG     : "records action"
